@@ -57,26 +57,36 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define MISO_Pin GPIO_PIN_0
-#define MISO_GPIO_Port GPIOA
-#define CONVST_Pin GPIO_PIN_1
-#define CONVST_GPIO_Port GPIOA
-#define RANGE_Pin GPIO_PIN_2
-#define RANGE_GPIO_Port GPIOA
-#define Change_Pin GPIO_PIN_5
-#define Change_GPIO_Port GPIOA
-#define OS0_Pin GPIO_PIN_4
-#define OS0_GPIO_Port GPIOC
-#define OS1_Pin GPIO_PIN_5
-#define OS1_GPIO_Port GPIOC
-#define OS2_Pin GPIO_PIN_6
-#define OS2_GPIO_Port GPIOC
-#define RST_Pin GPIO_PIN_10
-#define RST_GPIO_Port GPIOC
-#define RD_Pin GPIO_PIN_11
-#define RD_GPIO_Port GPIOC
-#define CS_Pin GPIO_PIN_12
-#define CS_GPIO_Port GPIOC
+#define DRDY_Pin GPIO_PIN_3
+#define DRDY_GPIO_Port GPIOC
+#define CS1256_Pin GPIO_PIN_1
+#define CS1256_GPIO_Port GPIOA
+#define REST_Pin GPIO_PIN_2
+#define REST_GPIO_Port GPIOA
+#define SCLK_Pin GPIO_PIN_3
+#define SCLK_GPIO_Port GPIOA
+#define DRC_Pin GPIO_PIN_4
+#define DRC_GPIO_Port GPIOA
+#define OSK_Pin GPIO_PIN_5
+#define OSK_GPIO_Port GPIOA
+#define PF0_Pin GPIO_PIN_6
+#define PF0_GPIO_Port GPIOA
+#define PF2_Pin GPIO_PIN_7
+#define PF2_GPIO_Port GPIOA
+#define DRO_Pin GPIO_PIN_1
+#define DRO_GPIO_Port GPIOB
+#define IOUP_Pin GPIO_PIN_2
+#define IOUP_GPIO_Port GPIOB
+#define PF1_Pin GPIO_PIN_12
+#define PF1_GPIO_Port GPIOB
+#define CS9910_Pin GPIO_PIN_8
+#define CS9910_GPIO_Port GPIOA
+#define PWR_Pin GPIO_PIN_5
+#define PWR_GPIO_Port GPIOB
+#define SDIO_Pin GPIO_PIN_6
+#define SDIO_GPIO_Port GPIOB
+#define DPH_Pin GPIO_PIN_7
+#define DPH_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

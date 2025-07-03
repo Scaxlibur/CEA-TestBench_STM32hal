@@ -18,13 +18,15 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "AD9910.h"
+#include "ads1256.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,7 +47,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+/*AD9910的*/
+extern uint8_t cfr2[4]; //cfr2控制字
+extern uint8_t cfr1[4]; //cfr1控制字
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -56,7 +60,6 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /**
@@ -76,7 +79,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+	
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -84,13 +87,27 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
+  /*下面是ADS1256的初始化*/
+	uint8_t i=0;
+	uint32_t Adc;
+	float Volts[8]; //存放8个通道的数据
+	
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   MX_TIM4_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
+  
+	ADS1256_Init(ADS1256_CMD_SELFCAL, ADS1256_DRATE_10SPS, ADS1256_GAIN_1, CLOCK_ON, SENSOR_OFF);
+  
+  Init_ad9910();
+  //单频调制模式*/
+  Freq_convert(1000);   //设置频率为1k,正弦波
+  Write_Amplitude(500); //设置幅值（1-800mV）幅度设置为粗略设置
+
 
   /* USER CODE END 2 */
 
@@ -101,6 +118,22 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+    /*ADS1256部分*/
+    for(i = 0;i < 8;i++)
+		{
+			Adc = ADS1256ReadData( (i << 4) | ADS1256_MUXN_AINCOM);// 00001000为不关心负输入，
+			//i<<4为依次以0-8为正输入
+			Volts[i] = Adc*0.000000598;	
+			
+				//i为1时输出通道0的数据
+        printf("channe%d=",i);
+        Print_Float(Volts[i]);
+        printf("V\n");
+		}  
+    printf("\n");
+
+    /*AD9910部分*/
   }
   /* USER CODE END 3 */
 }
@@ -151,7 +184,16 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef  *htim)
+{
+  
+	  static unsigned char ledstate = 0;
+	  
+    if (htim == (&htim4))                    //TIM4中断后读取adc数值
+    {
+        ad7606_IRQSrc();
+    }
+}
 /* USER CODE END 4 */
 
 /**
