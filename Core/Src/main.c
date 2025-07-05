@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -26,7 +25,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "AD9910.h"
-#include "ads1256.h"
+#include "ad7606.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,6 +46,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+/*AD7606的*/
+int i;
+
 /*AD9910的*/
 extern uint8_t cfr2[4]; //cfr2控制字
 extern uint8_t cfr1[4]; //cfr1控制字
@@ -60,6 +62,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
 /* USER CODE END 0 */
 
 /**
@@ -70,6 +73,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+
+    		//注意注释掉main中的tim4_init		
 
   /* USER CODE END 1 */
 
@@ -87,26 +92,33 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
-  /*下面是ADS1256的初始化*/
-	uint8_t i=0;
-	uint32_t Adc;
-	float Volts[8]; //存放8个通道的数据
+  
 	
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
-  MX_TIM4_Init();
-  MX_SPI2_Init();
+  // MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-  
-	ADS1256_Init(ADS1256_CMD_SELFCAL, ADS1256_DRATE_10SPS, ADS1256_GAIN_1, CLOCK_ON, SENSOR_OFF);
+
+  /*下面是AD7606的初始化*/
+  /*
+	初始化设置AD7606参数
+	正负10V对应转换  (10*(float)((short)g_tAD.usBuf[j])/32768)      AD_RANGE_10V()
+	正负5V对应转换   (10*(float)((short)g_tAD.usBuf[j])/32768/2)    AD_RANGE_5V()
+	*/
+	ad7606_init ();
+	AD_RANGE_5V();                                        //设置输入电压最大值
+  ad7606_StartRecord();                           		   //采样率为100K，采样率由TIM4决定,采样率应该是被采样信号的2倍以上
+
+  /*AD9910的初始化*/
+  HAL_Delay(50);
   
   Init_ad9910();
   //单频调制模式*/
   Freq_convert(1000);   //设置频率为1k,正弦波
-  Write_Amplitude(500); //设置幅值（1-800mV）幅度设置为粗略设置
+  Write_Amplitude(20); //设置幅值（1-800mV）幅度设置为粗略设置
 
 
   /* USER CODE END 2 */
@@ -119,19 +131,13 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-    /*ADS1256部分*/
-    for(i = 0;i < 8;i++)
-		{
-			Adc = ADS1256ReadData( (i << 4) | ADS1256_MUXN_AINCOM);// 00001000为不关心负输入，
-			//i<<4为依次以0-8为正输入
-			Volts[i] = Adc*0.000000598;	
-			
-				//i为1时输出通道0的数据
-        printf("channe%d=",i);
-        Print_Float(Volts[i]);
-        printf("V\n");
-		}  
-    printf("\n");
+    /*AD7606部分*/
+		int32_t average_val;
+		average_val = ad7606_get_signal_average_val(1,8);//AIN1迭代8次的值
+    
+    
+    printf("average_val_AIN1 = %d mv\n",ad7606_get_signal_average_val(1,8));
+    HAL_Delay(200);//注意延时不要太久
 
     /*AD9910部分*/
   }
@@ -187,7 +193,6 @@ void SystemClock_Config(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef  *htim)
 {
   
-	  static unsigned char ledstate = 0;
 	  
     if (htim == (&htim4))                    //TIM4中断后读取adc数值
     {
